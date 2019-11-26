@@ -14,8 +14,8 @@ variables:
 
 steps:
 - script: |
-    apt-get update \
-    && apt-get install -y \
+    sudo apt-get update \
+    && sudo apt-get install -y \
        build-essential \
        cmake \
        flex \
@@ -25,17 +25,17 @@ steps:
        python
   displayName: 'Install Build Dependencies'
   
-- script: mkdir ${buildDir}
+- script: mkdir $(buildDir)
   displayName: 'Prepare Build Directory'
   
-- script: cmake ${Build.SourcesDirectory}
-  workingDirectory: ${buildDir}
+- script: cmake $(Build.SourcesDirectory)
+  workingDirectory: $(buildDir)
   displayName: Configure cmake
 
 - script: cmake --build .
-  workingDirectory: ${buildDir}
+  workingDirectory: $(buildDir)
   displayName: Build Doxygen
 
 - script: ctest --output-on-failure
-  workindDirectory ${buildDir}
+  workingDirectory: $(buildDir)
   displayName: Run Tests
