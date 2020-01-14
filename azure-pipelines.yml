@@ -24,21 +24,30 @@ steps:
        texlive-base \
        python
   displayName: 'Install Build Dependencies'
-  
-- script: mkdir $(buildDir)
-  displayName: 'Prepare Build Directory'
-  
-- script: cmake $(Build.SourcesDirectory)
-  workingDirectory: $(buildDir)
-  displayName: 'Configure cmake'
 
-- script: cmake --build .
-  workingDirectory: $(buildDir)
+- task: CMake@1
+  inputs:
+    workingDirectory: $(buildDir)
+    cmakeArgs: $(Build.SourcesDirectory)
+  displayName: 'Configure CMake'
+
+- task: CMake@1
+  inputs:
+    workingDirectory: $(buildDir)
+    cmakeArgs: --build .
   displayName: 'Build Doxygen'
 
-- script: ctest --output-on-failure
+- script: ctest --output-on-failure --no-compress-output -T Test
+  continueOnError: true
   workingDirectory: $(buildDir)
   displayName: 'Run Tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: cTest
+    testResultsFiles: '**/Test.xml'
+    searchFolder: $(buildDir)/Testing
+  displayName: Publish Test Results
 
 - task: PublishBuildArtifacts@1
   inputs:
