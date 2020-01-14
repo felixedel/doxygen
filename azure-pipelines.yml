@@ -7,24 +7,14 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-18.04'
+  vmImage: 'ubuntu-16.04'
+
+container: schanzel/doxygen-build-env:latest
   
 variables:
-  buildDir: '/tmp/build'
+  buildDir: '$(System.DefaultWorkingDirectory)/build'
 
 steps:
-- script: |
-    sudo apt-get update \
-    && sudo apt-get install -y \
-       build-essential \
-       cmake \
-       flex \
-       bison \
-       libxml2-utils \
-       texlive-base \
-       python
-  displayName: 'Install Build Dependencies'
-
 - task: CMake@1
   inputs:
     workingDirectory: $(buildDir)
