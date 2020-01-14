@@ -30,12 +30,18 @@ steps:
   
 - script: cmake $(Build.SourcesDirectory)
   workingDirectory: $(buildDir)
-  displayName: Configure cmake
+  displayName: 'Configure cmake'
 
 - script: cmake --build .
   workingDirectory: $(buildDir)
-  displayName: Build Doxygen
+  displayName: 'Build Doxygen'
 
 - script: ctest --output-on-failure
   workingDirectory: $(buildDir)
-  displayName: Run Tests
+  displayName: 'Run Tests'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(buildDir)
+    artifactName: doxygen
+  displayName: 'Publish Artefacts'
