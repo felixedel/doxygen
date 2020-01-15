@@ -37,6 +37,7 @@ steps:
     testResultsFormat: cTest
     testResultsFiles: '**/Test.xml'
     searchFolder: $(buildDir)/Testing
+    failTaskOnFailedTests: true
   displayName: Publish Test Results
 
 - task: PublishBuildArtifacts@1
