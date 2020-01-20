@@ -1,19 +1,42 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
+pr:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-16.04'
+
+container: schanzel/doxygen-build-env:latest
+  
+variables:
+  buildDir: '$(System.DefaultWorkingDirectory)/build'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: CMake@1
+  inputs:
+    workingDirectory: $(buildDir)
+    cmakeArgs: $(Build.SourcesDirectory)
+  displayName: 'Configure CMake'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: CMake@1
+  inputs:
+    workingDirectory: $(buildDir)
+    cmakeArgs: --build .
+  displayName: 'Build Doxygen'
+
+- script: ctest --output-on-failure --no-compress-output -T Test
+  continueOnError: true
+  workingDirectory: $(buildDir)
+  displayName: 'Run Tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: cTest
+    testResultsFiles: '**/Test.xml'
+    searchFolder: $(buildDir)/Testing
+    failTaskOnFailedTests: true
+  displayName: Publish Test Results
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(buildDir)
+    artifactName: doxygen
+  displayName: 'Publish Artefacts'
