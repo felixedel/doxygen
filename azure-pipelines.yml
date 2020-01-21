@@ -6,14 +6,13 @@ pr:
 
 pool:
   vmImage: 'ubuntu-16.04'
-  
-container: schanzel/doxygen-build-env:latest
     
 variables:
   buildDir: '$(System.DefaultWorkingDirectory)/build'
 
 jobs:
   - job: build_doxygen
+    container: schanzel/doxygen-build-env:latest
     steps:
     - task: CMake@1
       inputs:
