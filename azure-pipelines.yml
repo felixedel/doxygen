@@ -1,19 +1,49 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+  - master
+
+pr:
+  - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-16.04'
+    
+variables:
+  buildDir: '$(System.DefaultWorkingDirectory)/build'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+jobs:
+  - job: build_doxygen
+    steps:
+    - script: |
+        sudo apt-get update \
+        && sudo apt-get install -y \
+          build-essential \
+          cmake \
+          flex \
+          bison \
+          libxml2-utils \
+          texlive-base \
+          python
+      displayName: install_deps
+    - task: CMake@1
+      inputs:
+        workingDirectory: $(buildDir)
+        cmakeArgs: $(Build.SourcesDirectory)
+      displayName: configure
+    - task: CMake@1
+      inputs:
+        workingDirectory: $(buildDir)
+        cmakeArgs: --build .
+      displayName: make
+    - script: ctest --output-on-failure --no-compress-output -T Test
+      continueOnError: true
+      workingDirectory: $(buildDir)
+      displayName: ctest
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: cTest
+        testResultsFiles: '**/Test.xml'
+        searchFolder: $(buildDir)/Testing
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: $(buildDir)/bin
+        artifactName: doxygen
