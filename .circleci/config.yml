@@ -12,27 +12,51 @@ jobs:
       - image: schanzel/doxygen-build-env:latest
     steps:
       - checkout
-      - restore_cache:
-          name: Get build output from cache
-          keys: doxygen-build
       - run:
           name: Creating build files
-          command: 'cmake .'
+          command: 'cmake -H. -Bbuild'
       - run:
           name: Creating binary files
           command: 'cmake --build build'
+      - persist_to_workspace:
+          name: Persist build dir to workspace
+          root: .
+          paths:
+            - build
+  test-doxygen:
+    docker:
+      - image: schanzel/doxygen-build-env:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          name: Restore build dir from workspace
+          at: .
       - run:
           name: Run tests
           command: ctest --output-on-failure --no-compress-output -T Test
           working_directory: build
-      - save_cache:
-          name: Store build output in cache
-          key: doxygen-build
+      - persist_to_workspace:
+          name: Persist test results to workspace
+          root: .
           paths:
-            - build
+            - build/Testing
+  upload-tests:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - attach_workspace:
+          name: Restore test results from workspace
+          at: .
       - store_test_results:
           name: Upload test results
           path: build/Testing
+  upload-artifacts:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - attach_workspace:
+          name: Restore build results from workspace
+          at: .
       - store_artifacts:
           name: Upload build artifacts
           path: build/bin
@@ -46,3 +70,12 @@ workflows:
     jobs:
       - welcome/run
       - build-doxygen
+      - test-doxygen:
+          requires:
+            - build-doxygen
+      - upload-tests:
+          requires:
+            - test-doxygen
+      - upload-artifacts:
+          requires:
+            - test-doxygen
