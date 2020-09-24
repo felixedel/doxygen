@@ -71,6 +71,8 @@ workflows:
       - welcome/run
       - build-doxygen
       - test-doxygen:
+          # requires that an in-app button be clicked by an appropriate member of the project to continue.
+          type: approval
           requires:
             - build-doxygen
       - upload-tests:
